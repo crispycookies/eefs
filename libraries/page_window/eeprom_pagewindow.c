@@ -21,15 +21,18 @@
 
 #include "eeprom_pagewindow.h"
 #include "common_types.h"
-#include "semLib.h"
 #include <stdio.h>
 #include <string.h>
+#include <FreeRTOS.h>
+#include <semphr.h>
+
+#define WAIT_FOREVER portMAX_DELAY
 
 /*
  * Local Data
  */
 
-SEM_ID                  EEPROM_semId;
+SemaphoreHandle_t       EEPROM_semId;
 EEPROM_PageWindow_t     EEPROM_PageWindow;
 
 /*
@@ -66,7 +69,7 @@ int32 EEPROM_PageWindowInit(void)
 
     memset(&EEPROM_PageWindow, 0, sizeof(EEPROM_PageWindow_t));
 
-    if ((EEPROM_semId = semMCreate(SEM_Q_PRIORITY | SEM_INVERSION_SAFE)) == NULL) {
+    if ((EEPROM_semId = xSemaphoreCreateBinary()) == NULL) {
         ReturnStatus = EEPROM_SEM_ERROR;
     }
 
@@ -86,11 +89,11 @@ int32 EEPROM_PageWindowWrite(void *Dest, void *Src, uint32 Size)
             
             if (EEPROM_IsWriteProtected((uint32)Dest) == FALSE) {
 
-                semTake(EEPROM_semId, WAIT_FOREVER);
+                xSemaphoreTake(EEPROM_semId, WAIT_FOREVER);
                 for (i=0; i < Size; i++) {
                     EEPROM_PageWindowWriteByte((uint32)(Dest + i), *((uint8 *)(Src + i)));
                 }
-                semGive(EEPROM_semId);
+                xSemaphoreGive(EEPROM_semId);
 
                 ReturnStatus = EEPROM_SUCCESS;
             }
@@ -134,7 +137,7 @@ void EEPROM_PageWindowFlush(void)
 
     if (EEPROM_PageWindow.Loaded == TRUE) {
 
-        semTake(EEPROM_semId, WAIT_FOREVER);
+        xSemaphoreTake(EEPROM_semId, WAIT_FOREVER);
         LRO_Write_EEPROM(&EEPROM_PageWindow.Buffer, (EEPROM_PageWindow.LowerAddress - EEPROM_START_ADDR), EEPROM_PageWindow.BufferSize);
 
         /* read back verify - used for debugging */
@@ -147,7 +150,7 @@ void EEPROM_PageWindowFlush(void)
 /*        } */
 
         EEPROM_PageWindow.Loaded = FALSE;
-        semGive(EEPROM_semId);
+        xSemaphoreGive(EEPROM_semId);
     }
     
 } /* End of EEPROM_PageWindowFlush() */

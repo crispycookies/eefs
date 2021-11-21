@@ -156,7 +156,6 @@
 
 #include "common_types.h"
 #include "eefs_config.h"
-#include "eefs_version.h"
 #include <fcntl.h>
 #include <stdio.h>
 #include <time.h>

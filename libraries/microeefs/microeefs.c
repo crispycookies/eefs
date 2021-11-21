@@ -22,7 +22,7 @@
  */
 
 #include "eefs_fileapi.h"
-#include "eefs_macros.h"
+#include "../../drivers/standalone_driver/eefs_macros.h"
 #include <string.h>
 
 /*

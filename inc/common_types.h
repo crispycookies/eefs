@@ -36,6 +36,9 @@
 #ifndef _common_types_
 #define _common_types_
 
+#include <stdbool.h>
+#include <stdint.h>
+
 /*
 ** Includes
 */
@@ -61,7 +64,17 @@
    #define OS_ALIGN(n) 
 #endif
 
-#if defined(_ix86_)
+#if defined(__ARMEL__)
+  typedef bool                                  boolean;
+  typedef int8_t                                int8;
+  typedef int16_t                               int16;
+  typedef int32_t                               int32;
+  typedef uint8_t                               uint8;
+  typedef uint16_t                              uint16;
+  typedef uint32_t                              uint32;
+  typedef uint64_t                              uint64;
+
+#elif defined(_ix86_)
 /* ----------------------- Intel x86 processor family -------------------------*/
   /* Little endian */
   #undef   _STRUCT_HIGH_BIT_FIRST_
